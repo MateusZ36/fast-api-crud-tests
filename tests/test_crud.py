@@ -1,91 +1,122 @@
+import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-from database import Base
-from main import app, get_db
-
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-
-engine = create_engine(
-	SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base.metadata.create_all(bind=engine)
+from main import app
+from models import Task
+from schemas import TaskCreate
 
 
-def override_get_db():
-	try:
-		db = TestingSessionLocal()
-		yield db
-	finally:
-		db.close()
+@pytest.fixture(scope="module")
+def test_app():
+	client = TestClient(app)
+	yield client
 
 
-app.dependency_overrides[get_db] = override_get_db
+def mocked_data(*args, **kwargs):
+	return Task(title="Test Task", description="This is a test task", id=1)
 
-client = TestClient(app)
+
+def mocked_data_none(*args, **kwargs):
+	return None
 
 
 class TestTaskCrud:
-	def test_create_task(self):
-		task_data = {"title": "Test Task", "description": "This is a test task"}
-		response = client.post("/tasks/", json=task_data)
+	def test_create_task(self, test_app, monkeypatch):
+		monkeypatch.setattr("crud.create_task", mocked_data)
+
+		task_data = TaskCreate(title="Test Task", description="This is a test task")
+
+		response = test_app.post("/tasks/", json=task_data.dict())
 		assert response.status_code == 200
+
 		data = response.json()
-		assert data["title"] == task_data["title"]
-		assert data["description"] == task_data["description"]
+		assert data["title"] == task_data.title
+		assert data["description"] == task_data.description
 		assert "id" in data
-		task_id = data["id"]
 
-		response = client.get(f"/tasks/{task_id}")
+	def test_get_specific_task_success(self, test_app, monkeypatch):
+		monkeypatch.setattr("crud.get_task", mocked_data)
+
+		response = test_app.get(f"/tasks/1")
 		assert response.status_code == 200
 		data = response.json()
-		assert data["title"] == task_data["title"]
-		assert data["description"] == task_data["description"]
-		assert data["id"] == task_id
 
-	def test_read_tasks(self):
-		response = client.get("/tasks/")
+		task_data = Task(title="Test Task", description="This is a test task", id=1)
+		assert data["title"] == task_data.title
+		assert data["description"] == task_data.description
+		assert data["id"] == task_data.id
+
+	#
+	def test_get_specific_task_not_found(self, test_app, monkeypatch):
+		monkeypatch.setattr("crud.get_task", mocked_data_none)
+
+		response = test_app.get(f"/tasks/{40}")
+		assert response.status_code == 404
+		data = response.json()
+
+		assert data["detail"] == "Task not found"
+
+	#
+	def test_read_tasks(self, test_app, monkeypatch):
+		def mocked_data(*args, **kwargs):
+			return [
+				Task(title="Test Task 1", description="This is a test task", id=1),
+				Task(title="Test Task 2", description="This another test task", id=2),
+				Task(title="Test Task 3", description="This yet another test task", id=3)
+			]
+
+		monkeypatch.setattr("crud.get_tasks", mocked_data)
+
+		response = test_app.get("/tasks/")
 		assert response.status_code == 200
 		tasks = response.json()
-		assert len(tasks) > 0
-		for task in tasks:
-			assert "id" in task
-			assert "title" in task
-			assert "description" in task
+		expected_tasks = [
+			{"title": "Test Task 1", "description": "This is a test task", "id": 1},
+			{"title": "Test Task 2", "description": "This another test task", "id": 2},
+			{"title": "Test Task 3", "description": "This yet another test task", "id": 3}
+		]
 
-	def test_update_task(self):
-		task_data = {"title": "Test Task", "description": "This is a test task"}
-		response = client.post("/tasks/", json=task_data)
-		assert response.status_code == 200
-		data = response.json()
-		assert data["title"] == task_data["title"]
-		assert data["description"] == task_data["description"]
-		assert "id" in data
-		task_id = data["id"]
+		assert len(tasks) == 3
+		for result, expected in zip(tasks, expected_tasks):
+			assert result["id"] == expected["id"]
+			assert result["title"] == expected["title"]
+			assert result["description"] == expected["description"]
+
+	def test_update_task_success(self, test_app, monkeypatch):
+		def mocked_data_update(*args, **kwargs):
+			return Task(title="Updated Test Task", description="This is an updated test task", id=1)
+
+		monkeypatch.setattr("crud.get_task", mocked_data)
+		monkeypatch.setattr("crud.update_task", mocked_data_update)
 
 		updated_task_data = {"title": "Updated Test Task", "description": "This is an updated test task"}
-		response = client.put(f"/tasks/{task_id}", json=updated_task_data)
+		response = test_app.put(f"/tasks/1", json=updated_task_data)
 		assert response.status_code == 200
 		data = response.json()
 		assert data["title"] == updated_task_data["title"]
 		assert data["description"] == updated_task_data["description"]
-		assert data["id"] == task_id
 
-	def test_delete_task(self):
-		task_data = {"title": "Test Task", "description": "This is a test task"}
-		response = client.post("/tasks/", json=task_data)
-		assert response.status_code == 200
-		data = response.json()
-		assert data["title"] == task_data["title"]
-		assert data["description"] == task_data["description"]
-		assert "id" in data
-		task_id = data["id"]
+	def test_update_task_not_found(self, test_app, monkeypatch):
+		monkeypatch.setattr("crud.get_task", mocked_data_none)
 
-		response = client.delete(f"/tasks/{task_id}")
-		assert response.status_code == 200
+		updated_task_data = {"title": "Updated Test Task", "description": "This is an updated test task"}
+		response = test_app.put(f"/tasks/1", json=updated_task_data)
 
-		response = client.get(f"/tasks/{task_id}")
 		assert response.status_code == 404
+		data = response.json()
+		assert data["detail"] == "Task not found"
+
+	def test_delete_task_success(self, test_app, monkeypatch):
+		monkeypatch.setattr("crud.get_task", mocked_data)
+		monkeypatch.setattr("crud.delete_task", mocked_data)
+
+		response = test_app.delete(f"/tasks/1")
+		assert response.status_code == 200
+
+	def test_delete_task_not_found(self, test_app, monkeypatch):
+		monkeypatch.setattr("crud.get_task", mocked_data_none)
+
+		response = test_app.delete(f"/tasks/1")
+		assert response.status_code == 404
+		data = response.json()
+		assert data["detail"] == "Task not found"

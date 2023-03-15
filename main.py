@@ -3,7 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.params import Depends
 from sqlalchemy.orm import Session
 from typing import List
-import crud, models, schemas
+import crud
+import models
+import schemas
 from database import SessionLocal, engine
 
 app = FastAPI()
