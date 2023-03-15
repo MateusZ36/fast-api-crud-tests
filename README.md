@@ -7,7 +7,7 @@ Este é um exemplo de testes de aplicação CRUD utilizando o framework FastAPI.
 Clone o repositório:
 
 ```bash
-git clone https://github.com/seu-usuario/fastapi-crud-example.git
+git clone https://github.com/MateusZ36/fast-api-crud-tests.git
 ```
 
 Acesse o diretório do projeto:
