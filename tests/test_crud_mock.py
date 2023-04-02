@@ -1,15 +1,5 @@
-import pytest
-from fastapi.testclient import TestClient
-
-from main import app
 from models import Task
 from schemas import TaskCreate
-
-
-@pytest.fixture(scope="module")
-def test_app():
-	client = TestClient(app)
-	yield client
 
 
 def mocked_data(*args, **kwargs):
@@ -20,7 +10,7 @@ def mocked_data_none(*args, **kwargs):
 	return None
 
 
-class TestTaskCrud:
+class TestTaskMockedCrud:
 	def test_create_task(self, test_app, monkeypatch):
 		monkeypatch.setattr("crud.create_task", mocked_data)
 

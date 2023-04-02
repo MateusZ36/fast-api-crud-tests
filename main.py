@@ -4,9 +4,8 @@ from fastapi.params import Depends
 from sqlalchemy.orm import Session
 from typing import List
 import crud
-import models
 import schemas
-from database import SessionLocal, engine
+from database import SessionLocal, engine, Base
 
 app = FastAPI()
 
@@ -23,10 +22,9 @@ app.add_middleware(
 	allow_headers=["*"],
 )
 
-models.Base.metadata.create_all(bind=engine)
-
 
 def get_db():
+	Base.metadata.create_all(bind=engine)
 	db = SessionLocal()
 	try:
 		yield db
