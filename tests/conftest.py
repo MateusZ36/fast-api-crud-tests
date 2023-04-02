@@ -39,7 +39,3 @@ def reset_db():
 
 def pytest_runtest_setup(item):
 	reset_db()
-
-
-def pytest_sessionfinish(session, exitstatus):
-	os.remove("test.db")
