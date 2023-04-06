@@ -36,7 +36,7 @@ class TestTaskMockedCrud:
 		assert data["description"] == task_data.description
 		assert data["id"] == task_data.id
 
-	#
+
 	def test_get_specific_task_not_found(self, test_app, monkeypatch):
 		monkeypatch.setattr("crud.get_task", mocked_data_none)
 
@@ -46,7 +46,7 @@ class TestTaskMockedCrud:
 
 		assert data["detail"] == "Task not found"
 
-	#
+
 	def test_read_tasks(self, test_app, monkeypatch):
 		def mocked_data(*args, **kwargs):
 			return [

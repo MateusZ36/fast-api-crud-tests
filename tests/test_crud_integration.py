@@ -25,7 +25,7 @@ class TestTaskCrud:
 		assert data["description"] == task_data.description
 		assert data["id"] == task_data.id
 
-	#
+
 	def test_get_specific_task_not_found(self, test_app, ):
 		response = test_app.get(f"/tasks/{40}")
 		assert response.status_code == 404

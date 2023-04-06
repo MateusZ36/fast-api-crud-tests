@@ -18,10 +18,14 @@ cd fastapi-crud-example
 
 Instale as dependências do projeto:
 
+###### Com dependencias para testes:
 ```bash
-pip install -r requirements-dev.txt # Com dependencias para testes
-#ou
-pip install -r requirements.txt # Sem dependencias para testes
+pip install -r requirements-dev.txt 
+```
+
+###### Sem dependencias para testes:
+```bash
+pip install -r requirements.txt
 ```
 
 ## Executando o servidor
