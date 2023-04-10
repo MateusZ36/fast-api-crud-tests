@@ -47,7 +47,7 @@ class TestTaskMockedCrud:
 		assert data["detail"] == "Task not found"
 
 
-	def test_read_tasks(self, test_app, monkeypatch):
+	def test_get_tasks(self, test_app, monkeypatch):
 		def mocked_data(*args, **kwargs):
 			return [
 				Task(title="Test Task 1", description="This is a test task", id=1),

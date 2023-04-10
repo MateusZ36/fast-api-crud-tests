@@ -48,7 +48,7 @@ class TestTaskCrud:
 		data = response.json()
 		assert data["detail"] == "Task not found"
 
-	def test_read_tasks(self, test_app):
+	def test_get_tasks(self, test_app):
 		test_app.post("/tasks/", json=TaskCreate(title="Test Task 1", description="This is a test task").dict())
 		test_app.post("/tasks/", json=TaskCreate(title="Test Task 2", description="This another test task").dict())
 		test_app.post("/tasks/", json=TaskCreate(title="Test Task 3", description="This yet another test task").dict())
