@@ -100,13 +100,13 @@ class TestTaskMockedCrud:
 		monkeypatch.setattr("crud.get_task", mocked_data)
 		monkeypatch.setattr("crud.delete_task", mocked_data)
 
-		response = test_app.delete(f"/tasks/1")
+		response = test_app.delete_task(f"/tasks/1")
 		assert response.status_code == 200
 
 	def test_delete_task_not_found(self, test_app, monkeypatch):
 		monkeypatch.setattr("crud.get_task", mocked_data_none)
 
-		response = test_app.delete(f"/tasks/1")
+		response = test_app.delete_task(f"/tasks/1")
 		assert response.status_code == 404
 		data = response.json()
 		assert data["detail"] == "Task not found"

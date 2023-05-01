@@ -34,6 +34,8 @@ def get_db():
 
 @app.post("/tasks/", response_model=schemas.Task)
 def create_task(task: schemas.TaskCreate, db: Session = Depends(get_db)):
+	if task.title.strip() == "" or task.description.strip() == "":
+		raise HTTPException(status_code=400, detail="Title and description must not be empty")
 	db_task = crud.create_task(db, task)
 	return db_task
 
@@ -54,6 +56,8 @@ def read_task(task_id: int, db: Session = Depends(get_db)):
 
 @app.put("/tasks/{task_id}", response_model=schemas.Task)
 def update_task(task_id: int, task: schemas.TaskUpdate, db: Session = Depends(get_db)):
+	if task.title.strip() == "" or task.description.strip() == "":
+		raise HTTPException(status_code=400, detail="Title and description must not be empty")
 	db_task = crud.get_task(db, task_id=task_id)
 	if db_task is None:
 		raise HTTPException(status_code=404, detail="Task not found")

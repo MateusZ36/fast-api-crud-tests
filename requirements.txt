@@ -2,3 +2,4 @@ fastapi==0.94.1
 python-multipart==0.0.6
 SQLAlchemy==2.0.6
 uvicorn==0.21.0
+Flask==2.3.1

@@ -1,0 +1,26 @@
+{% extends "main.html" %}
+{% block body %}
+<script>
+function validateForm() {
+  var title = document.getElementById("title").value;
+  var description = document.getElementById("description").value;
+  if (title.trim() == "" || description.trim() == "") {
+    alert("Title and description cannot be empty");
+    return false;
+  }
+}
+</script>
+
+
+
+<h1>Edit Task</h1>
+<form action="{{ url_for('edit_task', id=task.id) }}" method="post" onsubmit="return validateForm()">
+  <label for="title">Title:</label>
+  <input type="text" id="title" name="title" value="{{ task.title }}"><br>
+  <label for="description">Description:</label>
+  <input type="text" id="description" name="description" value="{{ task.description }}"><br>
+  <input type="submit" value="Save Changes">
+  <button onclick="location.href='{{ url_for('index') }}'">Cancel</button>
+</form>
+
+{% endblock %}
