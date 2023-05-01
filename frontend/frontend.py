@@ -12,17 +12,19 @@ def index():
     return render_template('index.html', tasks=tasks)
 
 
-@app.route('/task', methods=['POST'])
+@app.route('/task', methods=['GET', 'POST'])
 def add_task():
-    title = request.form['title']
-    description = request.form['description']
-    task = {"title": title, "description": description}
-    response = requests.post(api_url, json=task)
-    if response.status_code == 200:
-        return redirect(url_for('index'))
-    else:
-        flash(response.json().get("detail", 'Error: Unable to add task. Please try again later.'), 'error')
-        return redirect(url_for('index'))
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        task = {"title": title, "description": description}
+        response = requests.post(api_url, json=task)
+        if response.status_code == 200:
+            return redirect(url_for('index'))
+        else:
+            flash(response.json().get("detail", 'Erro: Não foi possivel adicionar tarefa. Tente novamente mais tarde.'), 'error')
+            return redirect(url_for('add_task'))
+    return render_template('new.html')
 
 
 @app.route('/task/<int:id>', methods=['GET', 'POST'])
@@ -35,7 +37,7 @@ def edit_task(id):
         if response.status_code == 200:
             return redirect(url_for('index'))
         else:
-            flash(response.json().get("detail", 'Error: Unable to update task. Please try again later.'), 'error')
+            flash(response.json().get("detail", 'Erro: Não foi possivel adicionar tarefa. Tente novamente mais tarde.'), 'error')
             return render_template('edit.html', task=task)
     return render_template('edit.html', task=task)
 
